@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rooka Apply</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+</head>
+<body>
+
+<h2>Apply Form</h2>
+<form id="applyForm">
+  <input type="text" id="userId" placeholder="Your Rooka ID" required><br>
+  <input type="text" id="position" placeholder="Position" required><br>
+  <textarea id="details" placeholder="Details"></textarea><br>
+  <button type="submit">Apply</button>
+</form>
+
+<script>
+document.getElementById("applyForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  const userId = document.getElementById("userId").value;
+  const position = document.getElementById("position").value;
+  const details = document.getElementById("details").value;
+
+  try {
+    await db.collection("applications").add({
+      userId: userId,
+      position: position,
+      details: details,
+      status: "pending",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("আপনার আবেদন জমা হয়েছে।");
+  } catch(err){
+    alert("ত্রুটি: " + err.message);
+  }
+});
+</script>
+
+</body>
+</html>

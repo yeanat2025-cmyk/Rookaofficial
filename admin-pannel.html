@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rooka Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{font-family:Arial; padding:10px;}
+    h2{margin-top:20px;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{border:1px solid #ccc; padding:8px; text-align:center;}
+    button{padding:5px 10px; margin:2px;}
+    input{margin:5px;}
+  </style>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, onSnapshot } 
+    from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB_qWfwC0YcWHxjs16d6LnAxzKBZg0a0P0",
+      authDomain: "titi-live1.firebaseapp.com",
+      projectId: "titi-live1",
+      storageBucket: "titi-live1.appspot.com",
+      messagingSenderId: "184688632840",
+      appId: "1:184688632840:web:85caa04f3884ca5c609dbd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* ================= USERS ================= */
+    const usersTable = document.getElementById("usersTable");
+
+    onSnapshot(collection(db,"users"), snap=>{
+      usersTable.innerHTML = `
+        <tr>
+          <th>Name</th><th>Email</th><th>Status</th><th>Device</th><th>Action</th>
+        </tr>`;
+      snap.forEach(d=>{
+        const u = d.data();
+        usersTable.innerHTML += `
+          <tr>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td>${u.status}</td>
+            <td>${u.deviceStatus}</td>
+            <td>
+              <button onclick="banUser('${d.id}','${u.status}')">Ban</button>
+              <button onclick="deviceUser('${d.id}','${u.deviceStatus}')">Device</button>
+            </td>
+          </tr>`;
+      });
+    });
+
+    window.banUser = async(id,st)=>{
+      await updateDoc(doc(db,"users",id),{
+        status: st==="active"?"banned":"active"
+      });
+    }
+
+    window.deviceUser = async(id,st)=>{
+      await updateDoc(doc(db,"users",id),{
+        deviceStatus: st==="enabled"?"disabled":"enabled"
+      });
+    }
+
+    /* ================= APPLICATION ================= */
+    const appTable = document.getElementById("appTable");
+
+    onSnapshot(collection(db,"applications"), snap=>{
+      appTable.innerHTML = `
+      <tr><th>User</th><th>Position</th><th>Status</th><th>Action</th></tr>`;
+      snap.forEach(d=>{
+        const a = d.data();
+        appTable.innerHTML += `
+        <tr>
+          <td>${a.userId}</td>
+          <td>${a.position}</td>
+          <td>${a.status}</td>
+          <td>
+            <button onclick="approve('${d.id}')">Approve</button>
+            <button onclick="reject('${d.id}')">Reject</button>
+          </td>
+        </tr>`;
+      });
+    });
+
+    window.approve = async(id)=>{
+      await updateDoc(doc(db,"applications",id),{status:"approved"});
+    }
+
+    window.reject = async(id)=>{
+      await updateDoc(doc(db,"applications",id),{status:"rejected"});
+    }
+
+    /* ================= MEDIA ================= */
+
+    // Slider Update
+    window.updateSlider = async()=>{
+      const val = document.getElementById("sliderInput").value;
+      const arr = val.split(",");
+      await setDoc(doc(db,"media","slider"),{images:arr});
+      alert("Slider Updated!");
+    }
+
+    // Main Image
+    window.updateMain = async()=>{
+      const val = document.getElementById("mainInput").value;
+      await setDoc(doc(db,"media","mainImg"),{url:val});
+      alert("Main Image Updated!");
+    }
+
+    // Grid Images
+    window.updateGrid = async()=>{
+      const val = document.getElementById("gridInput").value;
+      const arr = val.split(",");
+      await setDoc(doc(db,"media","gridImgs"),{urls:arr});
+      alert("Grid Updated!");
+    }
+
+  </script>
+</head>
+
+<body>
+
+<h1>🔥 Rooka Admin Panel</h1>
+
+<!-- USERS -->
+<h2>Users</h2>
+<table id="usersTable"></table>
+
+<!-- APPLICATION -->
+<h2>Applications</h2>
+<table id="appTable"></table>
+
+<!-- MEDIA -->
+<h2>Slider Images</h2>
+<input id="sliderInput" placeholder="slide1.jpg,slide2.jpg">
+<button onclick="updateSlider()">Update Slider</button>
+
+<h2>Main Image</h2>
+<input id="mainInput" placeholder="main.jpg">
+<button onclick="updateMain()">Update</button>
+
+<h2>Grid Images</h2>
+<input id="gridInput" placeholder="pic1.jpg,pic2.jpg">
+<button onclick="updateGrid()">Update</button>
+
+</body>
+</html>
